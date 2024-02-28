@@ -1,4 +1,4 @@
-## Semantic Kernel beginning
+## Semantic Kernel 請假助理
 
 這段程式碼是用 C# 寫的，它使用了 OpenAI 的 API 來創建一個 AI 聊天機器人。這個機器人可以與使用者進行對話，並可以直接呼叫一些特定的函數來執行特定的任務。  
 
