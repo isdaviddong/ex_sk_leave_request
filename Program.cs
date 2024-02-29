@@ -13,10 +13,13 @@ internal class Program
         var DeployName = "👉模型佈署名稱👈";
         var Endpoint = "https://👉API端點👈.openai.azure.com/";
         var ApiKey = "👉ApiKey👈";
-
+        //OpenAI
+        var OpenAIModel = "👉模型名稱👈";
+        var OpenAIKey = "👉ApiKey👈";
         // Create a new kernel builder
         var builder = Kernel.CreateBuilder()
-                    .AddAzureOpenAIChatCompletion(DeployName, Endpoint, ApiKey);
+                    .AddAzureOpenAIChatCompletion(DeployName, Endpoint, ApiKey)
+                    .AddOpenAIChatCompletion(OpenAIModel, OpenAIKey);
         builder.Plugins.AddFromType<LeaveRequestPlugin>(); // Add the LightPlugin to the kernel
         Kernel kernel = builder.Build();
 
@@ -26,13 +29,15 @@ internal class Program
             @"你是企業的請假助理，可以協助員工進行請假，或是查詢請假天數等功能。若員工需要請假，
                  你需要蒐集請假起始日期、天數、請假事由、代理人、請假者姓名等資訊。最後呼叫 LeaveRequest Method。
                  若員工需要查詢請假天數，你需要蒐集請假者姓名，最後呼叫 GetLeaveRecordAmount Method。
+                 --------------
+                 * 請用中文回答
                 ");
 
         // Get chat completion service
         var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
         // 開始對談
-        Console.Write("User > ");
+        Console.Write("用戶 > ");
         string? userInput;
         while (!string.IsNullOrEmpty(userInput = Console.ReadLine()))
         {
@@ -52,13 +57,13 @@ internal class Program
                 kernel: kernel);
 
             // Print the results
-            Console.WriteLine("Assistant > " + result);
+            Console.WriteLine("AI助理 > " + result);
 
             // Add the message from the agent to the chat history
             history.AddMessage(result.Role, result.Content ?? string.Empty);
 
             // Get user input again
-            Console.Write("User > ");
+            Console.Write("用戶 > ");
         }
     }
 }
@@ -76,7 +81,7 @@ public class LeaveRequestPlugin
 
     [KernelFunction]
     [Description("取得請假天數")]
-    public int GetLeaveRecordAmount(string employeeName)
+    public int GetLeaveRecordAmount([Description("要查詢請假天數的員工名稱")] string employeeName)
     {
         if (employeeName.ToLower() == "david")
             return 3;
@@ -86,7 +91,8 @@ public class LeaveRequestPlugin
 
     [KernelFunction]
     [Description("進行請假")]
-    public bool LeaveRequest(DateTime 請假起始日期, string 天數, string 請假事由, string 代理人, string 請假者姓名)
+    public bool LeaveRequest([Description("請假起始日期")] DateTime 請假起始日期, [Description("請假天數")] string 天數, [Description("請假事由")] string 請假事由, [Description("代理人")] string 代理人,
+    [Description("請假者姓名")] string 請假者姓名)
     {
 
         // Print the state to the console
