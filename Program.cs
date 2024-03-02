@@ -9,28 +9,24 @@ internal class Program
 {
     private static async global::System.Threading.Tasks.Task Main(string[] args)
     {
-        //Azure OpenAI 
-        var DeployName = "👉模型佈署名稱👈";
-        var Endpoint = "https://👉API端點👈.openai.azure.com/";
-        var ApiKey = "👉ApiKey👈";
         //OpenAI
-        var OpenAIModel = "👉模型名稱👈";
+        var OpenAIModel = "gpt-4-turbo-preview";
         var OpenAIKey = "👉ApiKey👈";
+
         // Create a new kernel builder
         var builder = Kernel.CreateBuilder()
-                    .AddAzureOpenAIChatCompletion(DeployName, Endpoint, ApiKey)
                     .AddOpenAIChatCompletion(OpenAIModel, OpenAIKey);
         builder.Plugins.AddFromType<LeaveRequestPlugin>(); // Add the LightPlugin to the kernel
         Kernel kernel = builder.Build();
 
         // Create chat history 物件，並且加入
-        var history = new ChatHistory();
-        history.AddSystemMessage(
-            @"你是企業的請假助理，可以協助員工進行請假，或是查詢請假天數等功能。若員工需要請假，
-                 你需要蒐集請假起始日期、天數、請假事由、代理人、請假者姓名等資訊。最後呼叫 LeaveRequest Method。
+        var history = new ChatHistory(
+            @"你是企業的請假助理，可以協助員工進行請假，或是查詢請假天數等功能。
+                 若員工需要請假，你需要蒐集請假起始日期、天數、請假事由、代理人、請假者姓名等資訊。最後呼叫 LeaveRequest Method。
                  若員工需要查詢請假天數，你需要蒐集請假者姓名，最後呼叫 GetLeaveRecordAmount Method。
                  --------------
-                 * 請用中文回答
+                 * 所有對談請用正體中文回答
+                 * 請以口語化的方式來回答，要適合對談機器人的角色
                 ");
 
         // Get chat completion service
@@ -63,30 +59,31 @@ internal class Program
             history.AddMessage(result.Role, result.Content ?? string.Empty);
 
             // Get user input again
-            Console.Write("用戶 > ");
+            Console.Write("\n用戶 > ");
         }
     }
 }
 
 
-// 
+// 請假功能 Plugin
 public class LeaveRequestPlugin
 {
-    [KernelFunction]
-    [Description("取得今天日期")]
-    public DateTime GetCurrentDate()
-    {
-        return DateTime.UtcNow.AddHours(8);
-    }
-
     [KernelFunction]
     [Description("取得請假天數")]
     public int GetLeaveRecordAmount([Description("要查詢請假天數的員工名稱")] string employeeName)
     {
+        //修改顯示顏色
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"\n [action]查詢 {employeeName} 請假天數。\n");
+        //還原顯示顏色
+        Console.ResetColor();
+
         if (employeeName.ToLower() == "david")
-            return 3;
-        else
             return 5;
+        else if (employeeName.ToLower() == "eric")
+            return 8;
+        else
+            return 3;
     }
 
     [KernelFunction]
@@ -94,10 +91,18 @@ public class LeaveRequestPlugin
     public bool LeaveRequest([Description("請假起始日期")] DateTime 請假起始日期, [Description("請假天數")] string 天數, [Description("請假事由")] string 請假事由, [Description("代理人")] string 代理人,
     [Description("請假者姓名")] string 請假者姓名)
     {
-
-        // Print the state to the console
-        Console.WriteLine($"建立假單:  {請假者姓名} 請假 {天數} 從 {請假起始日期} 開始，事由為 {請假事由}，代理人 {代理人}");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"\n [action]建立假單:  {請假者姓名} 請假 {天數}天，從 {請假起始日期} 開始，事由為 {請假事由}，代理人 {代理人}\n");
+        //還原顯示顏色
+        Console.ResetColor();
 
         return true;
+    }
+
+    [KernelFunction]
+    [Description("取得今天日期")]
+    public DateTime GetCurrentDate()
+    {
+        return DateTime.UtcNow.AddHours(8);
     }
 }
