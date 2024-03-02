@@ -13,3 +13,7 @@ LeaveRequestPlugin 類別包含了三個方法，分別是 GetCurrentDate、GetL
 GetCurrentDate 方法返回當前的日期和時間，GetLeaveRecordAmount 方法返回指定員工的請假天數，LeaveRequest 方法則用於處理請假請求。
 
 運行後，你會發現用戶可以透過這個自然語言對話機器人，完成請假與查詢的功能。
+
+###
+參考文章:
+https://studyhost.blogspot.com/2024/03/sk.html
